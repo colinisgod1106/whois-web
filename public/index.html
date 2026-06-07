@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WHOIS Lookup — 網域資訊查詢</title>
+  <meta name="description" content="快速查詢任何網域的 WHOIS 資訊，包含註冊商、建立日期、到期日期、名稱伺服器等詳細資料。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Background particles -->
+  <div class="bg-particles" id="bgParticles"></div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">🌐</span>
+        <span class="logo-text">WHOIS<span class="logo-accent">Lookup</span></span>
+      </div>
+      <nav class="nav-links">
+        <a href="#about" class="nav-link">關於</a>
+        <a href="https://github.com/colinisgod1106/whois-web" target="_blank" class="nav-link nav-github">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <main>
+    <section class="hero">
+      <div class="hero-badge">🔍 即時網域查詢工具</div>
+      <h1 class="hero-title">
+        查詢任何網域的<br />
+        <span class="gradient-text">WHOIS 資訊</span>
+      </h1>
+      <p class="hero-subtitle">輸入網域名稱，立即取得註冊商、建立日期、到期日期、名稱伺服器等完整資訊</p>
+
+      <!-- Search Box -->
+      <div class="search-container">
+        <div class="search-box" id="searchBox">
+          <div class="search-icon">🌍</div>
+          <input
+            type="text"
+            id="domainInput"
+            class="search-input"
+            placeholder="輸入網域名稱，例如：github.com"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button class="search-btn" id="searchBtn" onclick="lookupWhois()">
+            <span class="btn-text">查詢</span>
+            <span class="btn-arrow">→</span>
+          </button>
+        </div>
+        <div class="search-hints">
+          <span>試試看：</span>
+          <button class="hint-chip" onclick="quickSearch('google.com')">google.com</button>
+          <button class="hint-chip" onclick="quickSearch('github.com')">github.com</button>
+          <button class="hint-chip" onclick="quickSearch('cloudflare.com')">cloudflare.com</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Result Section -->
+    <section class="result-section" id="resultSection" style="display:none;">
+      <!-- Loading State -->
+      <div class="loading-card" id="loadingCard" style="display:none;">
+        <div class="loading-spinner">
+          <div class="spinner-ring"></div>
+          <div class="spinner-ring"></div>
+          <div class="spinner-ring"></div>
+        </div>
+        <p class="loading-text">正在查詢 WHOIS 資訊...</p>
+      </div>
+
+      <!-- Error State -->
+      <div class="error-card" id="errorCard" style="display:none;">
+        <div class="error-icon">⚠️</div>
+        <h3 class="error-title">查詢失敗</h3>
+        <p class="error-msg" id="errorMsg"></p>
+        <button class="retry-btn" onclick="lookupWhois()">重試</button>
+      </div>
+
+      <!-- Result Card -->
+      <div class="result-card" id="resultCard" style="display:none;">
+        <div class="result-header">
+          <div class="result-domain-info">
+            <div class="result-badge" id="resultStatusBadge">✅ 已註冊</div>
+            <h2 class="result-domain" id="resultDomain"></h2>
+          </div>
+          <button class="copy-raw-btn" id="copyRawBtn" onclick="copyRaw()">
+            📋 複製原始資料
+          </button>
+        </div>
+
+        <!-- Parsed Info Grid -->
+        <div class="info-grid" id="infoGrid"></div>
+
+        <!-- Raw WHOIS -->
+        <div class="raw-section">
+          <button class="raw-toggle" id="rawToggle" onclick="toggleRaw()">
+            <span>📄 顯示原始 WHOIS 資料</span>
+            <span class="raw-arrow" id="rawArrow">▼</span>
+          </button>
+          <div class="raw-content" id="rawContent" style="display:none;">
+            <pre class="raw-text" id="rawText"></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="about">
+      <h2 class="features-title">為什麼選擇我們？</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>即時查詢</h3>
+          <p>直接連線 WHOIS 伺服器，獲取最新資料，無任何快取延遲。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h3>資料解析</h3>
+          <p>自動從原始 WHOIS 資料中提取關鍵欄位，清晰呈現重要資訊。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <h3>安全可靠</h3>
+          <p>內建速率限制保護，防止濫用，確保服務穩定運行。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📱</div>
+          <h3>響應式設計</h3>
+          <p>完美支援桌面、平板、手機等各種裝置，隨時隨地查詢。</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>Built with ❤️ using <a href="https://github.com/sheepla/whois-cli" target="_blank">whois-cli</a> concept · Deployed on <a href="https://render.com" target="_blank">Render</a></p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
